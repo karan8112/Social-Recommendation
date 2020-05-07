@@ -1,0 +1,44 @@
+CREATE SCHEMA SOCIALRECOMMENDATION; 
+
+USE SOCIALRECOMMENDATION;
+
+CREATE TABLE `registration` (
+  `userid` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `username` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `password` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `streetaddress` varchar(400) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `city` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `state` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `zipcode` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `country` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `preference` varchar(500) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `created_date` varchar(20) DEFAULT NULL,
+  `longlat` varchar(100) DEFAULT NULL,
+  `userType` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`userid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+CREATE TABLE `review` (
+  `name` varchar(100) DEFAULT NULL,
+  `streetaddress` varchar(200) DEFAULT NULL,
+  `reviewrating` varchar(20) DEFAULT NULL,
+  `comment` varchar(1000) DEFAULT NULL,
+  `userid` varchar(100) DEFAULT NULL,
+  `internetRating` varchar(40) DEFAULT NULL,
+  `userTotalRating` varchar(40) DEFAULT NULL,
+  `photoURL` varchar(5000) DEFAULT NULL,
+  `latitude` varchar(200) DEFAULT NULL,
+  `longitude` varchar(200) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE `configuration` (
+  `recommendationsource` varchar(40) DEFAULT NULL,
+  `activeflag` varchar(40) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+select * from registration;
+select * from review;
+select * from configuration;

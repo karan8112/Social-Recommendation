@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:web="http://java.sun.com/xml/ns/javaee"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+         id="WebApp_ID" version="3.0">
+
+    <display-name>SocialRecommendation</display-name>
+
+    <!-- See the welcome-file Reference Material here: http://www.javatpoint.com/welcome-file-list -->
+    <welcome-file-list>
+        <welcome-file>RecommendationHome</welcome-file>
+    </welcome-file-list>
+
+   <!-- <servlet>
+        <servlet-name>Startup</servlet-name>
+        <servlet-class>Startup</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet> -->
+
+    <!--<servlet-mapping>-->
+        <!--<servlet-name>Login</servlet-name>-->
+        <!--<url-pattern>Login</url-pattern>-->
+    <!--</servlet-mapping>-->
+
+    <servlet>
+        <servlet-name>RecommendationHome</servlet-name>
+        <servlet-class>RecommendationHome</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>RecommendationHome</servlet-name>
+        <url-pattern>/RecommendationHome</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Login</servlet-name>
+        <servlet-class>Login</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Login</servlet-name>
+        <url-pattern>/Login</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Logout</servlet-name>
+        <servlet-class>Logout</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Logout</servlet-name>
+        <url-pattern>/Logout</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>Registration</servlet-name>
+        <servlet-class>Registration</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>Registration</servlet-name>
+        <url-pattern>/Registration</url-pattern>
+    </servlet-mapping>
+    <listener>
+		<listener-class>MySessionListener</listener-class>
+	</listener>
+
+</web-app>

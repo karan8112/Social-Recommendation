@@ -1,0 +1,594 @@
+<script>
+	var placeSearch, autocomplete;
+	var componentForm = {
+		street_number : 'short_name',
+		route : 'long_name',
+		locality : 'long_name',
+		administrative_area_level_1 : 'short_name',
+		country : 'long_name',
+		postal_code : 'short_name'
+	};
+
+	function initAutocomplete() {
+		// Create the autocomplete object, restricting the search to geographical
+		// location types.
+		autocomplete = new google.maps.places.Autocomplete(
+		/** @type {!HTMLInputElement} */
+		(document.getElementById('addressinput')), {
+			types : [ 'geocode' ]
+		});
+
+		// When the user selects an address from the dropdown, populate the address
+		// fields in the form.
+		autocomplete.addListener('place_changed', fillInAddress);
+	}
+
+	function fillInAddress() {
+		// Get the place details from the autocomplete object.
+		var place = autocomplete.getPlace();
+
+			var map = new google.maps.Map("", {
+				zoom : 1,
+				center : {
+					lat : -34.397,
+					lng : 150.644
+				}
+			});
+			var geocoder = new google.maps.Geocoder();
+			geocodeAddress(geocoder, map);
+
+		// }
+	}
+
+	function geocodeAddress(geocoder, resultsMap) {
+
+		var address = document.getElementById('addressinput').value;
+		geocoder
+				.geocode(
+						{
+							'address' : address
+						},
+						function(results, status) {
+							if (status === 'OK') {
+								resultsMap
+										.setCenter(results[0].geometry.location);
+								// alert(results[0].geometry.location);
+							} else {
+								alert('Geocode was not successful for the following reason: '
+										+ status);
+							}
+							document.getElementById('manuallatitude').value = results[0].geometry.location.toJSON().lat + "," + results[0].geometry.location.toJSON().lng; //results[0].geometry.location;
+						});
+	}
+
+	// Bias the autocomplete object to the user's geographical location,
+	// as supplied by the browser's 'navigator.geolocation' object.
+	function geolocate() {
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(function(position) {
+				var geolocation = {
+					lat : position.coords.latitude,
+					lng : position.coords.longitude,
+				};
+				document.getElementById('defaultlatitude').value = position.coords.latitude + "," + position.coords.longitude;
+				initializeAtLaunch(true,false);
+				var circle = new google.maps.Circle({
+					center : geolocation,
+					radius : position.coords.accuracy
+				});
+				autocomplete.setBounds(circle.getBounds());
+			});
+		}
+	}
+		
+	function geolocateForSettingDefaultLocation() {
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(function(position) {
+				var geolocation = {
+					lat : position.coords.latitude,
+					lng : position.coords.longitude,
+				};
+				document.getElementById('defaultlatitude').value = position.coords.latitude + "," + position.coords.longitude;
+			});
+		}
+	}
+</script>
+
+<script>
+	var map;
+	var service;
+	var infowindow;
+	
+	function initializeAtLaunch(isInitialLaunch, isFilterEnabled, type_val = "" , radius_val = "8000", cust_loc = "") {
+		var map;
+		var service;
+		var infowindow;
+		var data;
+		var latlong;
+		
+		if(document.getElementById('latitude') != null )
+			latlong = document.getElementById('latitude').innerHTML;
+		else
+			latlong = document.getElementById('defaultlatitude').value;
+
+		var res_latlong = latlong.split(",");
+		var reques = '';
+		if(isInitialLaunch) {
+			request = {
+				latitude : res_latlong[0],
+				longitude: res_latlong[1],
+				radius : radius_val
+				// query : txtSearch
+			};
+		}
+		else {
+			var txtSearch = document.getElementById('txtSearch').value;
+			if(txtSearch.trim() == "")
+			{
+				document.getElementById('txtSearch').className = 'col-md-8 input-search-validation';
+			}
+			else {
+				if( cust_loc != "" && document.getElementById('manuallatitude') != null 
+						&& document.getElementById('manuallatitude').value != "") {
+						latlong = document.getElementById('manuallatitude').value;
+					}
+				
+				var res_latlong = latlong.split(",");
+				document.getElementById('txtSearch').className = 'col-md-8 input-search';
+				// Use the dufault location from User Profile
+				request = {
+					latitude : res_latlong[0],
+					longitude: res_latlong[1],
+					radius : radius_val,
+					query : txtSearch
+				};
+				
+				if(!isFilterEnabled){
+					request = {
+						latitude : res_latlong[0],
+						longitude: res_latlong[1],
+						radius : radius_val,
+						query : txtSearch
+					};
+				}
+				else {
+					request = {
+						latitude : res_latlong[0],
+						longitude: res_latlong[1],
+						radius : radius_val,
+						query : txtSearch,
+						categories: type_val
+					};
+				}
+			}
+		}
+		callYelpAPI(request);
+
+	}
+	
+	function formatParams( params ){
+		  return "?" + Object
+		        .keys(params)
+		        .map(function(key){
+		          return key+"="+encodeURIComponent(params[key])
+		        })
+		        .join("&")
+	}
+	
+	function callYelpAPI(params) {
+		var results = [];
+		const Http = new XMLHttpRequest();
+		// Appended https://cors-anywhere.herokuapp.com/ to overcome CROS Error from javascript
+		const url="https://cors-anywhere.herokuapp.com/https://api.yelp.com/v3/businesses/search";
+		
+		Http.open("GET", url + formatParams(params));
+		Http.setRequestHeader("Authorization",'Bearer ZDjCHA93s36_SX_4YGSRRtUuY2ggila2mA-x8RvS-jyuG6fjwYh9AjMsU2k64paRvjRvRj7R8W1Xp7CUyHwDPO4EN2aGoTMtkyiRgw1AVChgb9aFKHT3N5OOIdy8XXYx');
+		Http.send();
+
+		Http.onreadystatechange = (e) => {
+		  var data = [];
+		  if(Http.responseTExt != '' || Http.responseText != null) {
+			  results = JSON.parse(Http.responseText).businesses;
+			  for(var i=0; i< results.length; i++) {
+				  // var place = results[i];
+				  data.push({
+						"formatted_address" : results[i].location.display_address.toString(),
+						"icon" : results[i].image_url,
+						"name" : results[i].name,
+						"rating" : results[i].rating,
+						"user_ratings_total" : results[i].review_count,
+						"photo_url":results[i].image_url,
+						"lat":results[i].coordinates.latitude,
+						"lng":results[i].coordinates.longitude
+					});
+			  }
+			  callajax(data);
+		  }
+		}
+	}
+	
+	
+
+	/* 5 miles = 8046 */
+	function initializeSearch(isFilterEnabled, type_val = "" , radius_val = "8000", cust_loc = "") {
+		var map;
+		var service;
+		var infowindow;
+		var data;
+		var latlong;
+		
+		if(document.getElementById('latitude') != null )
+			latlong = document.getElementById('latitude').innerHTML;
+		else
+			latlong = document.getElementById('defaultlatitude').value;
+
+		var txtSearch = document.getElementById('txtSearch').value;
+		if(txtSearch.trim() == "")
+		{
+			document.getElementById('txtSearch').className = 'col-md-8 input-search-validation';
+		}
+		else {
+			if( cust_loc != "" && document.getElementById('manuallatitude') != null 
+					&& document.getElementById('manuallatitude').value != "") {
+				latlong = document.getElementById('manuallatitude').value;
+			}
+			document.getElementById('txtSearch').className = 'col-md-8 input-search';
+			
+			var commaPos = latlong.indexOf(',');
+			var coordinatesLat = parseFloat(latlong.substring(0, commaPos));
+			var coordinatesLong = parseFloat(latlong.substring(commaPos + 1, latlong.length));
+			var pyrmont = new google.maps.LatLng(coordinatesLat, coordinatesLong);
+	
+			map = new google.maps.Map(document.getElementById('map'), {
+				center : pyrmont,
+				zoom : 15
+			});
+
+			
+			if(!isFilterEnabled){
+				var request = {
+					location : pyrmont,
+					radius : radius_val,
+					query : txtSearch
+				};
+			}
+			else {
+				var request = {
+					location : pyrmont,
+					radius : radius_val,
+					query : txtSearch,
+					type : type_val
+				};
+			}
+			
+			service = new google.maps.places.PlacesService(map);
+			service.textSearch(request, callback);
+		}
+
+	}
+
+	function callback(results, status) {
+		var data = [];
+		var senddata = {};
+		var photos={};
+		if (status == google.maps.places.PlacesServiceStatus.OK) {
+			for (var i = 0; i < results.length; i++) {
+				var place = results[i];
+				data.push({
+					"formatted_address" : place.formatted_address,
+					"icon" : place.icon,
+					"name" : place.name,
+					"rating" : place.rating,
+					"user_ratings_total" : place.user_ratings_total,
+					"photo_url": place.photos == null ? '' : place.photos[0].getUrl({maxWidht:300}),
+					"lat": place.geometry.location.lat(),
+					"lng": place.geometry.location.lng(),
+					"gmap": place.photos == null ? '' : place.photos[0].html_attributions[0],
+					"placeId": place.place_id
+				});
+								
+			}
+			callajax(data);
+		}
+
+		function createMarker(place) {
+			var marker = new google.maps.Marker({
+				map : map,
+				position : place.geometry.location
+			});
+
+			google.maps.event.addListener(marker, 'click', function() {
+				infowindow.setContent(place.name);
+				infowindow.open(map, this);
+			});
+		}
+
+	}
+
+	function callajax(data) {
+		var mydata = JSON.stringify(data);
+		$.ajax({
+			url : "RecommendationHome",
+			type : "POST",
+			data : {
+				"searchdata" : mydata
+			},
+			success : function(msg) {
+				
+				if(document.getElementById("span-res") != null){
+					document.getElementById("span-res").remove();
+				}
+					
+				var responseContainer = document.querySelector('#ajax-page-response');
+				var span = document.createElement('span');
+				span.setAttribute("id", "span-res");
+			    span.innerHTML = msg;
+			    responseContainer.appendChild(span);
+			},
+			error : function() {
+				alert("error occurred while making ajax call;");
+			}
+		});
+	};
+	
+	function getCookie(cname) {
+		  var name = cname + "=";
+		  var decodedCookie = decodeURIComponent(document.cookie);
+		  var ca = decodedCookie.split(';');
+		  for(var i = 0; i <ca.length; i++) {
+		    var c = ca[i];
+		    while (c.charAt(0) == ' ') {
+		      c = c.substring(1);
+		    }
+		    if (c.indexOf(name) == 0) {
+		      return c.substring(name.length, c.length);
+		    }
+		  }
+		  return "";
+	}
+	
+	$(document).ready(function(){
+		//Check When User is not logged in, call Yelp API and display the default data.
+		// If user is logged in, display the data through recommendation.
+		var username = getCookie("username");
+		if (username != "" && username != null) {
+			// alert("Welcome again " + username);
+			callajaxToRecommend();
+		} else {
+	    	// alert("Cookie Not Set");
+	    	geolocate();
+	  }
+		
+	});
+	
+	function callajaxToRecommend() {
+		var data = [];
+		$.ajax({
+			url : "Recommend",
+			type : "POST",
+			success : function(msg) {
+				// alert(msg);
+			  	results = JSON.parse(msg);
+			  	if(results != null && results.length > 0) {
+			  		for(var i=0; i< results.length; i++) {
+					  	data.push({
+							"formatted_address" : results[i].formatted_address,
+							"icon" : results[i].icon,
+							"name" : results[i].name,
+							"rating" : results[i].rating,
+							"user_ratings_total" : results[i].user_ratings_total,
+							"photo_url":results[i].photo_url,
+							"lat":results[i].lat,
+							"lng":results[i].lng
+						});
+				  	}
+				  	callajax(data);
+			  	}
+			  	else {
+			  		geolocate();
+			  	}
+			  	
+			},
+			error : function() {
+				alert("error occurred while making ajax call;");
+			}
+		});
+	};
+</script>
+
+<script>
+function check()
+{
+	if(document.getElementById('locationenabled').checked)
+		{
+		enable('selectbasic');
+		enable('selectdistance');
+		enable('addressinput');
+		enable('select-search-source');
+		}
+	else
+		{
+		disable('selectbasic');
+		disable('selectdistance');	
+		disable('addressinput');
+		disable('select-search-source');
+		geolocateForSettingDefaultLocation();
+		}
+}
+
+function disable(id)
+{
+	document.getElementById(id).disabled = true;
+}
+function enable(id)
+{
+	document.getElementById(id).disabled = false;
+}
+
+function performSearch() {
+	//Check if Checkbox is selected or not.
+	if(document.getElementById("locationenabled").checked) {
+		// alert(document.getElementById("locationenabled").checked);
+		// Check if type is selected or not
+		var source = document.getElementById("select-search-source");
+		var type = document.getElementById("selectbasic");
+		var distance = document.getElementById("selectdistance");
+		var address = document.getElementById("addressinput");
+		var str_source = source.options[source.selectedIndex].value;
+		var str_type = type.options[type.selectedIndex].value;
+		var str_distance = distance.options[distance.selectedIndex].value;
+		var str_address = address.value;
+		
+		// Validation of Search Source
+		if(str_source == 'search-source') {
+			document.getElementById('select-search-source').className = 'form-control option-style-error';
+		} else {
+			document.getElementById('select-search-source').className = 'form-control option-style';
+		}
+		
+		// Validation of Search Type
+		if(str_type == 'select-type') {
+			document.getElementById('selectbasic').className = 'form-control option-style-error';
+		} else {
+			document.getElementById('selectbasic').className = 'form-control option-style';
+		}
+		
+		if(str_source != 'search-source' && str_type != 'select-type') {
+			if(str_source == 'google') {
+				initializeSearch(true,str_type,str_distance,str_address);
+			} 
+			else if(str_source == 'yelp') {
+				if(str_type == 'amusement_park') {
+					str_type = 'amusementparks';
+					} else if(str_type == 'amusement_park') {
+						str_type = 'amusementparks';
+					} else if(str_type == 'bar') {
+						str_type = 'bars';
+					} else if(str_type == 'cafe') {
+						str_type = 'cafes';
+					} else if(str_type == 'shopping_mall') {
+						str_type = 'shoppingcenters';
+					} else if(str_type == 'museum') {
+						str_type = 'museums';
+					} else if(str_type == 'night_club') {
+						str_type = 'nightlife';
+					} else if(str_type == 'restaurant') {
+						str_type = 'restaurants';
+					} else if(str_type == 'tourist_attraction') {
+						str_type = 'tours';
+					}
+				initializeAtLaunch(false,true,str_type,str_distance,str_address);
+			}
+		}
+
+		
+	} else 
+	{
+		//By Default Google Search Only
+		// alert(document.getElementById("locationenabled").checked);
+		initializeSearch(false);
+	}
+}
+
+</script>
+
+<style>
+.container {
+	margin-top: 20px;
+	/* float: left; */
+}
+</style>
+<div>
+	<div class="search-container">
+		<div id='defaultlatitude'></div>
+		<div id='manuallatitude'></div>
+		<!-- Select Basic -->
+		<div class="">
+			<div
+				style="margin-left: 20px; margin-right: 20px; padding-bottom: 25px;"
+				class="row">
+				<input type="text" name="txtSearch" id="txtSearch"
+					class="col-md-8 input-search" placeholder="Search here"
+					style="margin-right: 10px;" /> <a
+					class="col-md-3 btnbuy btn-cust-style" href="#"
+					onclick="performSearch();"><span style="font-size: 25px;">Search</span></a>
+			</div>
+			<div id="map"></div>
+
+			<div class="row"
+				style="padding-top: 20px; padding-left: 10px; padding-right: 10px; border-top: 1px solid #d8d8d8;"
+				style="/* width: 100%; margin-top: 20px; border: 1px solid; height: 70px; padding-left: 8px; margin-left: 58px; margin-right: 80px; border-radius: 4px; float: left; margin-bottom: 18px; */">
+				<input onclick='check();' type='checkbox' name='locationenabled'
+					id='locationenabled' value='locationenabled'
+					style='float: left; margin-top: 22px; margin-right: 15px;' />
+				<div class="">
+					<div class="col-md-2">
+						<div style="padding-top: 11px;">
+							<select id="select-search-source" name="select-search-source"
+								class="form-control option-style" disabled>
+								<option value="search-source">Select Source</option>
+								<option value="google">Google</option>
+								<option value="yelp">Yelp</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-md-2">
+						<div style="padding-top: 11px;">
+							<select id="selectbasic" name="selectbasic"
+								class="form-control option-style" disabled>
+								<option value="select-type" selected>Select Type</option>
+								<option value="amusement_park">Amusement Park</option>
+								<option value="bar">Bar</option>
+								<option value="cafe">Cafe</option>
+								<option value="shopping_mall">Shopping Mall</option>
+								<option value="museum">Museum</option>
+								<option value="night_club">Night Club</option>
+								<option value="restaurant">Restaurant</option>
+								<option value="tourist_attraction">Tourist Attraction</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-md-2">
+						<div style="padding-top: 11px;">
+							<select disabled id="selectdistance" name="selectdistance"
+								class="form-control">
+								<option value="8000">5 miles</option>
+								<option value="16000">10 miles</option>
+								<option value="32000">20 miles</option>
+								<option value="80000">50 miles</option>
+								<option value="160000">100 miles</option>
+							</select>
+						</div>
+					</div>
+					<div class="">
+						<div style="padding-top: 11px;">
+
+							<script src="https://cdn.jsdelivr.net/npm/places.js@1.16.6"></script>
+
+							<script>
+								var placesAutocomplete = places({
+									appId : 'places-recommendation-256419',
+									apiKey : 'AIzaSyAlEI_D1-GlYlaSLlMUPisFfrkrxIfmw-A',
+									container : document.querySelector('#addressinput')
+								});
+							</script>
+							<input disabled type="text" onFocus='geolocate()' style=""
+								class="search-box-location col-md-4" id="addressinput"
+								placeholder="Where are we going?" />
+						</div>
+					</div>
+				</div>
+
+
+
+
+			</div>
+		</div>
+	</div>
+	<div id="ajax-page-response"></div>
+</div>
+<script
+	src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAlEI_D1-GlYlaSLlMUPisFfrkrxIfmw-A&libraries=places&callback=initAutocomplete"
+	async defer></script>
+
+

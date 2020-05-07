@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<title>Social Recommendation</title>
+<meta name="keywords" content="" />
+<meta name="description" content="" />
+<link href="style.css" rel="stylesheet" type="text/css" media="screen" />
+<!-- Links for Jquery and bootstrap css -->
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script>
+<!-- jqurey script -->
+	$(document).ready(function() {
+
+		$('#myCarousel').carousel({
+			interval : 3000
+		})
+
+		$('.carousel .item').each(function() {
+			var next = $(this).next();
+			if (!next.length) {
+				next = $(this).siblings(':first');
+			}
+			next.children(':first-child').clone().appendTo($(this));
+		});
+	});
+</script>
+
+<script type="text/javascript">
+	function imgPreview(fileDom) {
+		if (window.FileReader) {
+			var reader = new FileReader();
+		} else {
+			alert("Something bad happened! Please try again");
+		}
+
+		var file = fileDom.files[0];
+		var imageType = /^image\//;
+		if (!imageType.test(file.type)) {
+			alert("Something bad happened! Please try again");
+			return;
+		}
+		reader.onload = function(e) {
+			var img = document.getElementById("preview");
+			img.src = e.target.result;
+		};
+		reader.readAsDataURL(file);
+	}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/places.js@1.16.6"></script>
+<script>
+	var placesAutocomplete = places({
+		appId : 'social-1571281348700',
+		apiKey : 'AIzaSyAbgbsd1R1T4yzOzyJrp5uC3YTy1jIWgHg',
+		container : document.querySelector('#address-input')
+	});
+</script>
+<script type="text/javascript">
+	function removeCart(itemName) {
+		document.getElementById('CartForm').action = "RemoveCart?action=removeCart&amp;itemName="
+				+ itemName;
+		document.getElementById('CartForm').submit();
+	}
+</script>
+<style>
+* {
+	box-sizing: unset;
+}
+
+.col-md-6 {
+	width: 45% ! important;
+}
+</style>
+</head>
+<body class="body-main">
+	<div style="background: #bbbbbb5e; height: 100vh;">
+		<div id="logo" style="height: auto !important;">
+			<fieldset>
+				<!-- Form Name -->
+				<a href="/SocialRecommendationSystem"> <legend
+						style="border-bottom: 0px; padding-bottom: 25px; width: 57%; float: left">
+						<div class="header-text">
+							<span style="border-bottom: 5px solid; font-size: 35px;">Social
+								Recommendation</span>
+						</div>
+						<div
+							style="color: white; font-weight: 600; font-style: italic; font-size: 15px;">**
+							Recommends social places **</div>
+					</legend>
+					<div id='menu' style='float: right;'>
+						<ul>
+						</ul>
+					</div>
+				</a>
